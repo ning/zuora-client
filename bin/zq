@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'savon'
+require 'optparse'
+
+Savon::Request.log = false
+
+username = nil
+password = nil
+
+opts = OptionParser.new do |opts|
+  opts.banner = "Usage: zq -u <username> -p <password> <query>"
+  opts.on("-u", "--user USER", "username") {|u| username = u}
+  opts.on("-p", "--pass PASSWORD", "password") {|p| password = p}
+  opts.on("-v", "--verbose", "log harder") { Savon::Request.log = true}
+end
+
+remainder = opts.parse!(ARGV)
+query = remainder.join " "
+
+query =~ /select\s+(.+)\s+from/i
+fields = ($1.split /,\s+/).map do |f|
+  f.split(/(?=[A-Z])/).map{ |w| w.downcase}.join("_").to_sym
+end
+
+unless username and password
+  puts opts
+  exit 1
+end
+
+login_client = Savon::Client.new "https://www.zuora.com/apps/services/a/21.0"
+login_client.request.http.ssl_client_auth :verify_mode => OpenSSL::SSL::VERIFY_NONE
+
+response = login_client.login! do |soap|
+  soap.namespace = "http://api.zuora.com/"
+  soap.body = {
+                "wsdl:username" => username, 
+                "wsdl:password" => password
+              }
+end.to_hash
+
+server_url = response[:login_response][:result][:server_url]
+session = response[:login_response][:result][:session]
+
+client = Savon::Client.new server_url
+client.request.http.ssl_client_auth :verify_mode => OpenSSL::SSL::VERIFY_NONE
+
+
+response = client.query! do |soap|
+  soap.namespace = "http://api.zuora.com/"
+  soap.header['wsdl:SessionHeader'] = {"wsdl:session" => session}
+  soap.body =  { "wsdl:queryString" => query  }
+end
+
+raw = response.to_hash
+
+ignored = [:type, :ns2, :xsi]
+raw[:query_response][:result][:records].each do |r|
+  row = []
+  fields.each {|f| row << r[f]}
+  puts row.join "\t"
+end

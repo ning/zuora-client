@@ -5,13 +5,14 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "zuora-query"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = "Zuora command line query utility"
+    gem.description = "A minimally featured Zuora command line query utility"
     gem.email = "brianm@skife.org"
     gem.homepage = "http://github.com/brianm/zuora-query"
     gem.authors = ["Brian McCallister"]
     gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.add_dependency "savon", ">= 0.7.9"
+    gem.executables     =   [ 'zq' ]
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
