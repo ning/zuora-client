@@ -14,4 +14,4 @@ Description goes here.
 
 == Copyright
 
-Copyright (c) 2010 Brian McCallister. See LICENSE for details.
+Copyright (c) 2010 Ning. See LICENSE for details.
