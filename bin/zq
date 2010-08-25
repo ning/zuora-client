@@ -69,7 +69,6 @@ end
 
 raw = response.to_hash
 
-ignored = [:type, :ns2, :xsi]
 raw[:query_response][:result][:records].each do |r|
   row = []
   fields.each {|f| row << r[f]}
